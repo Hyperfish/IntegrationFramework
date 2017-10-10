@@ -14,16 +14,23 @@ using SampleProvider;
 
 namespace SampleConnector
 {
-    public class SampleConnector : IProfileProvider
+    /// <summary>
+    /// This sample connector simply provides a number of custom attibutes to Hyperfish 
+    /// and stores them in a simple JSON file. 
+    /// </summary>
+
+    public partial class SampleConnector : IProfileProvider
     {
         private SampleStore _store;
-
         private List<SampleAttribute> attributes;
-
         private string _settingsLocation;
+        private const string InternalName = "sample";
+        private const string InternalDisplayName = "Sample";
 
         public SampleConnector()
         {
+
+            // keep a basic hardcoded list of attributes this connector knows about
             attributes = new List<SampleAttribute>();
 
             attributes.Add(new SampleAttribute("startdate"));
@@ -36,9 +43,13 @@ namespace SampleConnector
 
             Debug.WriteLine($"Hyperfish: Sample provider loading from {location}");
             Logger?.Debug($"Sample provider loading from {location}");
-
         }
 
+#region IProfileProvider implementation
+
+        /// <summary>
+        /// Initialize is called by the Hyperfish agent process to set up the connector. 
+        /// </summary>
         public void Initialize(string settingsLocation, ILog logger = null)
         {
             try
@@ -69,7 +80,130 @@ namespace SampleConnector
             }
         }
 
+        public string Name => InternalName;
+
+        public void UpdateAttribute(IdentifierCollection identifiers, IAttribute attribute, object propertyValue)
+        {
+            Logger?.Debug($"Sample provider update for user: {identifiers}");
+
+            var identifier = GetRequiredIdentifier(identifiers);
+
+            Logger?.Debug($"Found needed identifier: {identifier}");
+
+            if (_store.People.Any(e => e.Identifiers.Has(identifiers)))
+            {
+                var person = _store.People.First(e => e.Identifiers.Has(identifiers));
+                person.Properties[attribute.Name] = propertyValue;
+
+                Logger?.Debug($"Found person: {person.Identifiers}");
+            }
+            else
+            {
+                Logger?.Debug($"Didnt find existing person. Creating one.");
+
+                var emp = CreateNewPerson(identifier);
+                _store.People.Add(emp);
+                SaveStore();
+            }
+
+            SaveStore();
+        }
+
+        public IPerson GetUser(IdentifierCollection identifiers, IEnumerable<IAttribute> properties)
+        {
+            Logger?.Debug($"Sample provider lookup for user: {identifiers}");
+
+            var identifier = GetRequiredIdentifier(identifiers);
+
+            Logger?.Debug($"Found needed identifier: {identifier}");
+
+            if (_store.People.Any(e => e.Identifiers.Has(identifiers)))
+            {
+                Logger?.Debug($"Found person.");
+                return _store.People.First(e => e.Identifiers.Has(identifiers));
+            }
+            else
+            {
+                Logger?.Debug($"Didnt find existing person. Creating one.");
+
+                var emp = CreateNewPerson(identifier);
+                _store.People.Add(emp);
+                SaveStore();
+
+                return emp;
+
+            }
+        }
+
+        public IEnumerable<IAttribute> GetAttributes()
+        {
+            return attributes.ToList<IAttribute>();
+        }
+
+        public IAttribute GetAttribute(string attributeName)
+        {
+            var foundAttribute = GetAttributes().FirstOrDefault(a => a.Name == attributeName);
+
+            if (foundAttribute != null)
+            {
+                return foundAttribute;
+            }
+            else
+            {
+                return new SampleAttribute(attributeName);
+            }
+        }
+
+        public IProfileProviderSettings Settings { get; set; }
+
+        public ILog Logger { get; set; }
+
+        public IEnumerable<IAttribute> GetBasicAttributesList
+        {
+            get { return attributes.ToList<IAttribute>(); }
+        }
+
+        public IEnumerable<IdentifierType> IdentifierTypesRequired
+        {
+            get
+            {
+                var types = new List<IdentifierType>
+                {
+                    _primaryIdentifierType,
+                    _secondaryIdentifierType
+                };
+
+                return types;
+            }
+        }
+
+        public IEnumerable<IdentifierType> IdentifierTypesProvided
+        {
+            get
+            {
+                var types = new List<IdentifierType>();
+
+                types.Add(new IdentifierType(CommonIdentifierTypes.EmployeeId));
+
+                return types;
+            }
+        }
+
+        public void Audit(bool incremental, IAudienceCollection orgAudiences, IAuditResultsStore auditResultsStore)
+        {
+
+            foreach (var employee in _store.People)
+            {
+                foreach (var audience in orgAudiences.Audiences)
+                {
+                    var result = this.CheckUser(employee, audience);
+                    auditResultsStore.AddResult(result);
+                }
+            }
+
+        }
         
+#endregion
 
         private void InitializeStore()
         {
@@ -116,37 +250,7 @@ namespace SampleConnector
             Logger?.Debug($"Saved sample store: {StoreFilePath}");
 
         }
-
-        // note: consider updating multiple attributes in one bulk call 
-
-        public void UpdateAttribute(IdentifierCollection identifiers, IAttribute attribute, object propertyValue)
-        {
-            Logger?.Debug($"Sample provider update for user: {identifiers}");
-
-            var identifier = GetRequiredIdentifier(identifiers);
-
-            Logger?.Debug($"Found needed identifier: {identifier}");
-            
-            if (_store.People.Any(e => e.Identifiers.Has(identifiers)))
-            {
-                var person = _store.People.First(e => e.Identifiers.Has(identifiers));
-                person.Properties[attribute.Name] = propertyValue;
-
-                Logger?.Debug($"Found person: {person.Identifiers}");
-            }
-            else
-            {
-                Logger?.Debug($"Didnt find existing person. Creating one.");
-                
-                var emp = CreateNewPerson(identifier);
-                _store.People.Add(emp);
-                SaveStore();
-            }
-
-            SaveStore();
-        }
-
-
+        
         private IIdentifier GetRequiredIdentifier(IdentifierCollection identifiers)
         {
             // make sure it has all the identifiers needed
@@ -168,33 +272,6 @@ namespace SampleConnector
         private IdentifierType _primaryIdentifierType = new IdentifierType(CommonIdentifierTypes.EmployeeId);
         private IdentifierType _secondaryIdentifierType = new IdentifierType(CommonIdentifierTypes.Upn);
 
-
-        public IPerson GetUser(IdentifierCollection identifiers, IEnumerable<IAttribute> properties)
-        {
-            Logger?.Debug($"Sample provider lookup for user: {identifiers}");
-            
-            var identifier = GetRequiredIdentifier(identifiers);
-
-            Logger?.Debug($"Found needed identifier: {identifier}");
-            
-            if (_store.People.Any(e => e.Identifiers.Has(identifiers)))
-            {
-                Logger?.Debug($"Found person.");
-                return _store.People.First(e => e.Identifiers.Has(identifiers));
-            }
-            else
-            {
-                Logger?.Debug($"Didnt find existing person. Creating one.");
-                
-                var emp = CreateNewPerson(identifier);
-                _store.People.Add(emp);
-                SaveStore();
-
-                return emp;
-
-            }
-        }
-
         private SampleEmployee CreateNewPerson(IIdentifier identifier)
         {
             EmployeeIdIdentifier id = new EmployeeIdIdentifier(DateTime.UtcNow.Ticks.ToString());
@@ -213,81 +290,7 @@ namespace SampleConnector
             return emp;
         }
 
-        private const string InternalName = "sample";
-        private const string InternalDisplayName = "Sample";
-
-        public string Name => InternalName;
-
         public string DisplayName => InternalDisplayName;
-
-        public IEnumerable<IAttribute> GetAttributes()
-        {
-            return attributes.ToList<IAttribute>();
-        }
-
-        public IAttribute GetAttribute(string attributeName)
-        {
-            var foundAttribute = GetAttributes().FirstOrDefault(a => a.Name == attributeName);
-
-            if (foundAttribute != null)
-            {
-                return foundAttribute;
-            }
-            else
-            {
-                return new SampleAttribute(attributeName);
-            }
-        }
-
-        public IProfileProviderSettings Settings { get; set; }
-
-        public ILog Logger { get; set; }
-
-
-        public IEnumerable<IAttribute> GetBasicAttributesList
-        {
-            get { return attributes.ToList<IAttribute>(); }
-        }
-
-        public IEnumerable<IdentifierType> IdentifierTypesRequired
-        {
-            get
-            {
-                var types = new List<IdentifierType>
-                {
-                    _primaryIdentifierType,
-                    _secondaryIdentifierType
-                };
-
-                return types;
-            }
-        }
-
-        public IEnumerable<IdentifierType> IdentifierTypesProvided
-        {
-            get
-            {
-                var types = new List<IdentifierType>();
-
-                types.Add(new IdentifierType(CommonIdentifierTypes.EmployeeId));
-
-                return types;
-            }
-        }
-        
-        public void Audit(bool incremental, IAudienceCollection orgAudiences, IAuditResultsStore auditResultsStore)
-        {
-
-            foreach (var employee in _store.People)
-            {
-                foreach (var audience in orgAudiences.Audiences)
-                {
-                    var result = this.CheckUser(employee, audience);
-                    auditResultsStore.AddResult(result);
-                }
-            }
-
-        }
 
         private AuditResult CheckUser(SampleEmployee person, IAudience audience)
         {
@@ -312,112 +315,5 @@ namespace SampleConnector
             return result;
         }
         
-        private class SampleEmployee : IPerson
-        {
-            private UpnIdentifier _upn;
-            public EmployeeIdIdentifier _employeeId;
-
-            public SampleEmployee()
-            {
-                this.Properties = new Dictionary<string, object>();
-            }
-
-            public SampleEmployee(EmployeeIdIdentifier employeeId)
-            {
-                this.Properties = new Dictionary<string, object>();
-
-                this.EmployeeId = employeeId;
-            }
-
-            public EmployeeIdIdentifier EmployeeId
-            {
-                get { return _employeeId; }
-
-                set
-                {
-                    this.Properties["employeeid"] = value.StringValue;
-                    _employeeId = value;
-                }
-            }
-
-
-            public UpnIdentifier Upn
-            {
-                get { return _upn; }
-                set { _upn = value; }
-            }
-
-            public IDictionary<string, object> Properties { get; set; }
-
-            public JObject ToJson()
-            {
-                List<JProperty> properties = new List<JProperty>();
-                foreach (var p in this.Properties)
-                {
-                    var value = p.Value;
-
-                    if (value is string || value is int || value is Array || value is DateTime)
-                    {
-                        properties.Add(new JProperty(p.Key, value));
-                    }
-                }
-
-                JObject user = new JObject(properties);
-                return user;
-            }
-
-            public IdentifierCollection Identifiers
-            {
-                get
-                {
-                    var identifiers = new IdentifierCollection();
-
-                    var id = this.EmployeeId;
-                    identifiers.Add(id);
-
-                    if(this._upn != null) identifiers.Add(this._upn);
-
-                    return identifiers;
-                }
-            }
-        }
-
-        private class SampleStore
-        {
-            public List<SampleEmployee> People = new List<SampleEmployee>();
-        }
-
-        public class AuditError: IAuditError
-        {
-            public AuditError(ValidationError e, IAudience audience)
-            {
-                Message = e.Message;
-                Value = e.Value;
-                ErrorType = e.ErrorType;
-                Path = e.Path;
-                SchemaId = e.SchemaId;
-                LineNumber = e.LineNumber;
-                LinePosition = e.LinePosition;
-
-                this.Audience = new List<IAudience>() { audience };
-            }
-
-            public string Message { get; set; }
-
-            public ErrorType ErrorType { get; set; }
-
-            public object Value { get; set; }
-
-            public IList<IAudience> Audience { get; set; }
-
-            public int LineNumber { get; set; }
-
-            public int LinePosition { get; set; }
-
-            public string Path { get; set; }
-
-            public Uri SchemaId { get; set; }
-        }
-
     }
 }
