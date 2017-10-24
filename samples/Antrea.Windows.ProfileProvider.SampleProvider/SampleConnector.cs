@@ -10,7 +10,6 @@ using log4net;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
-using SampleProvider;
 
 namespace SampleConnector
 {
@@ -191,16 +190,16 @@ namespace SampleConnector
 
         public void Audit(bool incremental, IAudienceCollection orgAudiences, IAuditResultsStore auditResultsStore)
         {
-
-            foreach (var employee in _store.People)
+            foreach (var audience in orgAudiences.Audiences)
             {
-                foreach (var audience in orgAudiences.Audiences)
+                var providerAudienceSchema = audience.Schema.GetProviderSpecificSchema(this.Name);
+            
+                foreach (var employee in _store.People)
                 {
-                    var result = this.CheckUser(employee, audience);
+                    var result = this.CheckUser(employee, audience, providerAudienceSchema);
                     auditResultsStore.AddResult(result);
                 }
             }
-
         }
         
 #endregion
@@ -292,22 +291,22 @@ namespace SampleConnector
 
         public string DisplayName => InternalDisplayName;
 
-        private AuditResult CheckUser(SampleEmployee person, IAudience audience)
+        private AuditResult CheckUser(SampleEmployee person, IAudience audience, JSchema schema)
         {
             IList<ValidationError> errors = new List<ValidationError>();
 
             var userToCheck = person.ToJson();
 
-            var schema = audience.Schema.GetProviderSpecificSchema(this.Name);
+            //var schema = audience.Schema.GetProviderSpecificSchema(this.Name);
 
             bool valid = userToCheck.IsValid(schema, out errors);
 
             // map these to our own error object
-            var auditErrors = new List<IAuditError>();
+            var auditErrors = new List<AuditError>();
 
             foreach (var error in errors)
             {
-                auditErrors.Add(new AuditError(error, audience));
+                auditErrors.Add(new AuditError(error, audience, this, schema));
             }
 
             var result = new AuditResult(person, auditErrors);

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Antrea.Windows.ProfileProvider;
 using Antrea.Windows.ProfileProvider.Identifiers;
 using Newtonsoft.Json.Linq;
-using SampleProvider;
 
 namespace SampleConnector
 {
