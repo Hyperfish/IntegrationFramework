@@ -88,7 +88,7 @@ namespace SampleConnector
             var identifier = GetRequiredIdentifier(identifiers);
 
             Logger?.Debug($"Found needed identifier: {identifier}");
-
+            
             if (_store.People.Any(e => e.Identifiers.Has(identifiers)))
             {
                 var person = _store.People.First(e => e.Identifiers.Has(identifiers));
@@ -100,8 +100,9 @@ namespace SampleConnector
             {
                 Logger?.Debug($"Didnt find existing person. Creating one.");
 
-                var emp = CreateNewPerson(identifier);
-                _store.People.Add(emp);
+                var person = CreateNewPerson(identifier);
+                person.Properties[attribute.Name] = propertyValue;
+                _store.People.Add(person);
                 SaveStore();
             }
 
