@@ -26,6 +26,11 @@ namespace SampleConnector
 
         public string StringValue => Value.ToString();
 
+        public string JsonValue
+        {
+            get { return this.StringValue; }
+        }
+
         public IdentifierType IdentifierType => new IdentifierType(CommonIdentifierTypes.EmployeeId);
 
         public override string ToString()

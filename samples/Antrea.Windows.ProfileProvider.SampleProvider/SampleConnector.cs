@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Antrea.Windows.ProfileProvider;
+using Antrea.Windows.ProfileProvider.Exceptions;
 using Antrea.Windows.ProfileProvider.Identifiers;
 using log4net;
 using Newtonsoft.Json;
@@ -100,10 +101,12 @@ namespace SampleConnector
             {
                 Logger?.Debug($"Didnt find existing person. Creating one.");
 
-                var person = CreateNewPerson(identifier);
-                person.Properties[attribute.Name] = propertyValue;
-                _store.People.Add(person);
-                SaveStore();
+                if (identifier is UpnIdentifier upnIdentifer)
+                {
+                    var emp = CreateNewPerson(upnIdentifer);
+                    emp.Properties[attribute.Name] = propertyValue;
+                    _store.People.Add(emp);
+                }
             }
 
             SaveStore();
@@ -126,12 +129,16 @@ namespace SampleConnector
             {
                 Logger?.Debug($"Didnt find existing person. Creating one.");
 
-                var emp = CreateNewPerson(identifier);
-                _store.People.Add(emp);
-                SaveStore();
+                if (identifier is UpnIdentifier upnIdentifer)
+                {
+                    var emp = CreateNewPerson(upnIdentifer);
+                    _store.People.Add(emp);
+                    SaveStore();
 
-                return emp;
-
+                    return emp;
+                }
+                
+                throw new ProfileNotFoundException("Couldnt find user in sample store");
             }
         }
 
@@ -239,6 +246,12 @@ namespace SampleConnector
 
         private void SaveStore()
         {
+            // if we are instructed to not save
+            if (!((SampleConnectorSettings) this.Settings).PersistStore)
+            {
+                return;
+            }
+
             var json = JsonConvert.SerializeObject(_store, Formatting.Indented, new JsonSerializerSettings
             {
                 TypeNameHandling = TypeNameHandling.Objects,
@@ -272,11 +285,12 @@ namespace SampleConnector
         private IdentifierType _primaryIdentifierType = new IdentifierType(CommonIdentifierTypes.EmployeeId);
         private IdentifierType _secondaryIdentifierType = new IdentifierType(CommonIdentifierTypes.Upn);
 
-        private SampleEmployee CreateNewPerson(IIdentifier identifier)
+        private SampleEmployee CreateNewPerson(UpnIdentifier identifier)
         {
             EmployeeIdIdentifier id = new EmployeeIdIdentifier(DateTime.UtcNow.Ticks.ToString());
 
-            var emp = new SampleEmployee(id);
+            var emp = new SampleEmployee(id, identifier);
+
             emp.Properties["compensation"] = "$100,000";
             emp.Properties["startdate"] = "2-May-2008";
             

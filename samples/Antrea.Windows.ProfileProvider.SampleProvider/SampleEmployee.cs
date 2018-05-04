@@ -5,45 +5,71 @@ using System.Text;
 using System.Threading.Tasks;
 using Antrea.Windows.ProfileProvider;
 using Antrea.Windows.ProfileProvider.Identifiers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace SampleConnector
 {
     public class SampleEmployee : IPerson
     {
-        private UpnIdentifier _upn;
-        public EmployeeIdIdentifier _employeeId;
 
         public SampleEmployee()
         {
             this.Properties = new Dictionary<string, object>();
+            this.Identifiers = new IdentifierCollection();
         }
 
-        public SampleEmployee(EmployeeIdIdentifier employeeId)
+        [JsonConstructor]
+        public SampleEmployee(Dictionary<string, object> properties)
         {
-            this.Properties = new Dictionary<string, object>();
+            this.Properties = properties;
 
-            this.EmployeeId = employeeId;
+            this.Identifiers = new IdentifierCollection();
+
+            this.Identifiers.Add(this.EmployeeId);
+            this.Identifiers.Add(this.Upn);
+            
         }
 
+        public SampleEmployee(EmployeeIdIdentifier employeeId, UpnIdentifier upnIdentifier)
+            : this()
+        {
+            this.EmployeeId = employeeId;
+            this.Upn = upnIdentifier;
+
+            this.Identifiers.Add(this.EmployeeId);
+            this.Identifiers.Add(this.Upn);
+        }
+
+        [JsonIgnore]
         public EmployeeIdIdentifier EmployeeId
         {
-            get { return _employeeId; }
+            get
+            {
+                return new EmployeeIdIdentifier(this.Properties["employeeid"] as string);
+            }
 
             set
             {
                 this.Properties["employeeid"] = value.StringValue;
-                _employeeId = value;
             }
         }
 
-
+        [JsonIgnore]
         public UpnIdentifier Upn
         {
-            get { return _upn; }
-            set { _upn = value; }
+            get
+            {
+                return new UpnIdentifier(this.Properties["upn"] as string);
+            }
+
+            set
+            {
+                this.Properties["upn"] = value.StringValue;
+            }
         }
 
+        [JsonProperty("properties")]
         public IDictionary<string, object> Properties { get; set; }
 
         public JObject ToJson()
@@ -63,19 +89,8 @@ namespace SampleConnector
             return user;
         }
 
-        public IdentifierCollection Identifiers
-        {
-            get
-            {
-                var identifiers = new IdentifierCollection();
-
-                var id = this.EmployeeId;
-                identifiers.Add(id);
-
-                if (this._upn != null) identifiers.Add(this._upn);
-
-                return identifiers;
-            }
-        }
+        [JsonIgnore]
+        public IdentifierCollection Identifiers { get; }
+        
     }
 }

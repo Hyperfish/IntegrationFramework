@@ -1,0 +1,228 @@
+﻿{
+  "id": "http://api.hyperfish.com/schemas/aduser",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "properties": {
+    "title": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Title"
+    },
+    "telephonenumber": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "telephoneNumber"
+    },
+    "sn": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Last Name"
+    },
+    "givenname": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Given Name"
+    },
+    "displayname": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Display name"
+    },
+    "manager": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Manager"
+    },
+    "co": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Country"
+    },
+    "mail": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Mail"
+    },
+    "company": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Company"
+    },
+    "department": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Department"
+    },
+    "description": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Description"
+    },
+    "mobile": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Mobile Phone"
+    },
+    "pager": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Pager"
+    },
+    "physicaldeliveryofficename": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Office"
+    },
+    "postalcode": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Postal Code"
+    },
+    "st": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "State"
+    },
+    "streetaddress": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Street Address"
+    },
+    "l": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "City"
+    },
+    "homephone": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Home Phone"
+    },
+    "postofficebox": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Post Office Box"
+    },
+    "wwwhomepage": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "WWW Home Page"
+    },
+    "thumbnailphoto": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Photo"
+    },
+    "userprincipalname": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "User Principal Name"
+    },
+    "sample__startdate": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Sample Start Date"
+    },
+    "sample__emergencycontact": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "Sample Emergency Contact"
+    },
+    "o365__aboutme": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/string"
+        }
+      ],
+      "title": "o365 About Me"
+    },
+    "useraccountcontrol": {
+      "format": "UserAccountControlFlags-Disabled",
+      "title": "User Account Control"
+    }
+  },
+  "required": [ "title", "displayname", "telephonenumber", "mail", "thumbnailphoto", "sn", "givenname", "manager", "department", "description", "mobile", "pager", "physicaldeliveryofficename", "postalcode", "st", "streetaddress", "l", "company", "co", "homephone", "postofficebox", "wwwhomepage", "userprincipalname", "sample__emergencycontact", "sample__startdate", "o365__AboutMe" ],
+  "definitions": {
+    "number": {
+      "type": "number"
+    },
+    "string": {
+      "type": "string"
+    }
+  },
+  "description": "Schema for the user object from AD"
+}

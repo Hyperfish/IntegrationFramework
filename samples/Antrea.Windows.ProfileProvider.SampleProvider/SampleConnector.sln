@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26228.9
+VisualStudioVersion = 15.0.26228.18
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleProvider", "SampleProvider.csproj", "{DDF3DC20-E8DA-40A2-8C1F-7D329442EE5F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleConnector.Tests", "..\SampleConnector.Tests\SampleConnector.Tests.csproj", "{2127ABBC-929D-44AB-9F6B-B351E0D5241D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{DDF3DC20-E8DA-40A2-8C1F-7D329442EE5F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DDF3DC20-E8DA-40A2-8C1F-7D329442EE5F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DDF3DC20-E8DA-40A2-8C1F-7D329442EE5F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2127ABBC-929D-44AB-9F6B-B351E0D5241D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2127ABBC-929D-44AB-9F6B-B351E0D5241D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2127ABBC-929D-44AB-9F6B-B351E0D5241D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2127ABBC-929D-44AB-9F6B-B351E0D5241D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
